@@ -67,6 +67,25 @@ class _SettingsTabState extends State<SettingsTab> {
             onPressed: () => _updateAmount(context, vm),
             child: const Text('Save'),
           ),
+          ElevatedButton(
+            onPressed: () async {
+              await Provider.of<AdminViewModel>(context, listen: false).exportDataToFile();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Backup exported successfully')),
+              );
+            },
+            child: const Text('Export Data'),
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () async {
+              await Provider.of<AdminViewModel>(context, listen: false).importDataFromFile();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Backup imported successfully')),
+              );
+            },
+            child: const Text('Import Data'),
+          ),
         ],
       ),
     );

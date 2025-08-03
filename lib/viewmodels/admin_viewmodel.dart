@@ -1,7 +1,9 @@
 import 'dart:convert';
-
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:file_picker/file_picker.dart';
 import '../core/constants/app_constants.dart';
 import '../core/utils/date_utils.dart';
 import '../data/models/payout_model.dart';
@@ -177,4 +179,58 @@ class AdminViewModel extends ChangeNotifier {
     return value != null ? double.tryParse(value) ?? AppConstants.defaultMonthlyAmount : AppConstants.defaultMonthlyAmount;
   }
 
+  Future<void> exportDataToFile() async {
+  // 🔹 Collect current data
+    final data = {
+      'users': users.map((u) => u.toJson()).toList(),
+      'payouts': payouts.map((p) => p.toJson()).toList(),
+      'monthlyAmount': monthlyAmount,
+      'lastReset': await _storage.read(key: _lastResetKey),
+    };
+
+    final jsonString = jsonEncode(data);
+
+    // 🔹 Save to file
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File('${dir.path}/kameti_backup.json');
+    await file.writeAsString(jsonString);
+  }
+
+  Future<void> importDataFromFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+    );
+
+    if (result != null && result.files.single.path != null) {
+      final file = File(result.files.single.path!);
+      final jsonString = await file.readAsString();
+      final decoded = jsonDecode(jsonString);
+
+      // 🔹 Restore users
+      users = (decoded['users'] as List)
+          .map((e) => UserModel.fromJson(e))
+          .toList();
+      await _saveUsers(users);
+
+      // 🔹 Restore payouts
+      payouts = (decoded['payouts'] as List)
+          .map((e) => PayoutModel.fromJson(e))
+          .toList();
+      await _savePayouts(payouts);
+
+      // 🔹 Restore amount
+      monthlyAmount = (decoded['monthlyAmount'] as num).toDouble();
+      await _storage.write(
+          key: _amountKey, value: monthlyAmount.toString());
+
+      // 🔹 Restore last reset
+      if (decoded['lastReset'] != null) {
+        await _storage.write(key: _lastResetKey, value: decoded['lastReset']);
+      }
+
+      notifyListeners();
+    }
+  }
 }
+

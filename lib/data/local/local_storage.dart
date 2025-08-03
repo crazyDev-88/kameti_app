@@ -1,7 +1,10 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
+import 'dart:io';
 import '../../data/models/user_model.dart';
 import '../../data/models/payout_model.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
 
 class LocalStorage {
   static const _usersKey = 'users';
@@ -61,4 +64,44 @@ class LocalStorage {
   Future<String?> getLastReset() async {
     return await _secureStorage.read(key: _lastResetKey);
   }
+
+  Future<String> exportData() async {
+    final users = await loadUsers();
+    final payouts = await loadPayouts();
+    final amount = await loadAmount();
+    final lastReset = await getLastReset();
+
+    final Map<String, dynamic> exportMap = {
+      'users': users.map((u) => u.toJson()).toList(),
+      'payouts': payouts.map((p) => p.toJson()).toList(),
+      'monthlyAmount': amount,
+      'lastReset': lastReset,
+    };
+
+    return jsonEncode(exportMap); // ✅ Returns a JSON string
+  }
+
+  Future<void> importData(String jsonString) async {
+    final Map<String, dynamic> importMap = jsonDecode(jsonString);
+
+    // ✅ Restore Users
+    final List<UserModel> importedUsers = (importMap['users'] as List)
+        .map((u) => UserModel.fromJson(u))
+        .toList();
+    await saveUsers(importedUsers);
+
+    // ✅ Restore Payouts
+    final List<PayoutModel> importedPayouts = (importMap['payouts'] as List)
+        .map((p) => PayoutModel.fromJson(p))
+        .toList();
+    final jsonPayouts = jsonEncode(importedPayouts.map((p) => p.toJson()).toList());
+    await _secureStorage.write(key: _payoutsKey, value: jsonPayouts);
+
+    // ✅ Restore Monthly Amount & Last Reset
+    await saveAmount((importMap['monthlyAmount'] as num).toDouble());
+    if (importMap['lastReset'] != null) {
+      await setLastReset(importMap['lastReset']);
+    }
+  }
+
 }
