@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../core/constants/app_colors.dart';
 import '../viewmodels/admin_viewmodel.dart';
+import 'auth/qr_download_screen.dart';
 import 'payment_history_tab.dart';
 import 'settings_tab.dart';
 import '../widgets/user_tile.dart';  // Assuming you have this for user list UI
@@ -65,6 +66,19 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
           appBar: AppBar(
             title: const Text('Kameti App'),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.download),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const QrDownloadScreen(
+                        downloadUrl: "https://yourusername.github.io/yourrepo/app-release.apk",
+                      ),
+                    ),
+                  );
+                },
+              ),
               IconButton(
                 tooltip: 'Logout',
                 icon: const Icon(Icons.logout),
