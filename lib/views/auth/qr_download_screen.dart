@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class QrDownloadScreen extends StatelessWidget {
   final String downloadUrl;
@@ -25,9 +26,11 @@ class QrDownloadScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
             ElevatedButton.icon(
-              onPressed: () {
-                // Open URL manually in browser if needed
-                // Can use url_launcher here
+              onPressed: () async {
+                final Uri url = Uri.parse(downloadUrl);
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                }
               },
               icon: const Icon(Icons.download),
               label: const Text("Download APK"),

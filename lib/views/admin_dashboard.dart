@@ -61,7 +61,7 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
         final totalAmount = vm.users.length * vm.monthlyAmount;
         final allPaid = vm.users.isNotEmpty && vm.users.every((u) => u.hasPaidForMonth(currentMonth));
         final payoutDone = vm.isPayoutDone(currentMonth);
-
+        
         return Scaffold(
           appBar: AppBar(
             title: const Text('Kameti App'),
@@ -73,7 +73,7 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
                     context,
                     MaterialPageRoute(
                       builder: (context) => const QrDownloadScreen(
-                        downloadUrl: "https://yourusername.github.io/yourrepo/app-release.apk",
+                        downloadUrl: 'https://crazydev-88.github.io/kameti_app/kameti_app.apk',
                       ),
                     ),
                   );
