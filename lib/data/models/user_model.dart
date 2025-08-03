@@ -26,20 +26,23 @@ class UserModel {
     );
   }
 
-  Map<String, dynamic> toMap() => {
+  /// ✅ Convert object to JSON
+  Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
         'hasPaid': hasPaid,
         'paymentHistory': paymentHistory,
       };
 
-  factory UserModel.fromMap(Map<String, dynamic> map) => UserModel(
-        id: map['id'],
-        name: map['name'],
-        hasPaid: map['hasPaid'] ?? false,
-        paymentHistory: Map<String, bool>.from(map['paymentHistory'] ?? {}),
-      );
-
+  /// ✅ Create object from JSON
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      id: json['id'],
+      name: json['name'],
+      hasPaid: json['hasPaid'] ?? false,
+      paymentHistory: Map<String, bool>.from(json['paymentHistory'] ?? {}),
+    );
+  }
   // Mark user as paid for current month
   void markPaid(String monthKey) {
     hasPaid = !hasPaid;

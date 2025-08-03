@@ -13,19 +13,23 @@ class PayoutModel {
     required this.date,
   });
 
-  Map<String, dynamic> toMap() => {
-    'userId': userId,
-    'userName': userName,
-    'monthKey': monthKey,
-    'amount': amount,
-    'date': date,
-  };
+  /// ✅ Convert object to JSON
+  Map<String, dynamic> toJson() => {
+        'userId': userId,
+        'userName': userName,
+        'monthKey': monthKey,
+        'amount': amount,
+        'date': date.toIso8601String(),
+      };
 
-  factory PayoutModel.fromMap(Map<String, dynamic> map) => PayoutModel(
-    userId: map['userId'],
-    userName: map['userName'],
-    monthKey: map['monthKey'],
-    amount: map['amount'],
-    date: map['date'],
-  );
+  /// ✅ Create object from JSON
+  factory PayoutModel.fromJson(Map<String, dynamic> json) {
+    return PayoutModel(
+      userId: json['userId'],
+      userName: json['userName'],
+      monthKey: json['monthKey'],
+      amount: (json['amount'] as num).toDouble(),
+      date: DateTime.parse(json['date']),
+    );
+  }
 }

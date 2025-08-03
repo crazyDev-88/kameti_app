@@ -1,64 +1,64 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 import '../../data/models/user_model.dart';
 import '../../data/models/payout_model.dart';
 
 class LocalStorage {
-  static const String _usersKey = 'users';
-  static const String _payoutsKey = 'payouts';
-  static const String _amountKey = 'monthly_amount';
-  static const String _lastResetKey = 'last_reset';
+  static const _usersKey = 'users';
+  static const _payoutsKey = 'payouts';
+  static const _amountKey = 'monthly_amount';
+  static const _lastResetKey = 'last_reset';
 
-  // ✅ Save users with ID
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+
+  /// ✅ Save list of users as JSON
   Future<void> saveUsers(List<UserModel> users) async {
-    final prefs = await SharedPreferences.getInstance();
-    final data = users.map((u) => jsonEncode(u.toMap())).toList();
-    await prefs.setStringList(_usersKey, data);
+    final jsonString = jsonEncode(users.map((u) => u.toJson()).toList());
+    await _secureStorage.write(key: _usersKey, value: jsonString);
   }
 
-  // ✅ Load users with ID
+  /// ✅ Load list of users from JSON
   Future<List<UserModel>> loadUsers() async {
-    final prefs = await SharedPreferences.getInstance();
-    final data = prefs.getStringList(_usersKey) ?? [];
-    return data.map((e) => UserModel.fromMap(jsonDecode(e))).toList();
+    final jsonString = await _secureStorage.read(key: _usersKey);
+    if (jsonString == null) return [];
+    final List<dynamic> decoded = jsonDecode(jsonString);
+    return decoded.map((u) => UserModel.fromJson(u)).toList();
   }
 
-  // ✅ Save payouts with userId
+  /// ✅ Save payouts as JSON
   Future<void> savePayout(PayoutModel payout) async {
-    final prefs = await SharedPreferences.getInstance();
-    final existing = prefs.getStringList(_payoutsKey) ?? [];
-    existing.add(jsonEncode(payout.toMap()));
-    await prefs.setStringList(_payoutsKey, existing);
+    final existingPayouts = await loadPayouts();
+    existingPayouts.add(payout);
+    final jsonString = jsonEncode(existingPayouts.map((p) => p.toJson()).toList());
+    await _secureStorage.write(key: _payoutsKey, value: jsonString);
   }
 
-  // ✅ Load payouts with userId
+  /// ✅ Load payouts from JSON
   Future<List<PayoutModel>> loadPayouts() async {
-    final prefs = await SharedPreferences.getInstance();
-    final data = prefs.getStringList(_payoutsKey) ?? [];
-    return data.map((e) => PayoutModel.fromMap(jsonDecode(e))).toList();
+    final jsonString = await _secureStorage.read(key: _payoutsKey);
+    if (jsonString == null) return [];
+    final List<dynamic> decoded = jsonDecode(jsonString);
+    return decoded.map((p) => PayoutModel.fromJson(p)).toList();
   }
 
-  // ✅ Save monthly amount
+  /// ✅ Save monthly amount
   Future<void> saveAmount(double amount) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble(_amountKey, amount);
+    await _secureStorage.write(key: _amountKey, value: amount.toString());
   }
 
-  // ✅ Load monthly amount
+  /// ✅ Load monthly amount
   Future<double> loadAmount() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getDouble(_amountKey) ?? 200.0;
+    final value = await _secureStorage.read(key: _amountKey);
+    return value != null ? double.tryParse(value) ?? 0 : 0;
   }
 
-  // ✅ Save last reset month
+  /// ✅ Save last reset month
   Future<void> setLastReset(String monthKey) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_lastResetKey, monthKey);
+    await _secureStorage.write(key: _lastResetKey, value: monthKey);
   }
 
-  // ✅ Get last reset month
+  /// ✅ Get last reset month
   Future<String?> getLastReset() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_lastResetKey);
+    return await _secureStorage.read(key: _lastResetKey);
   }
 }

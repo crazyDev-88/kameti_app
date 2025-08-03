@@ -1,5 +1,7 @@
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:kameti_app/views/auth/admin_login.dart';
 import 'package:provider/provider.dart';
 
 import '../core/constants/app_colors.dart';
@@ -17,7 +19,8 @@ class AdminDashboard extends StatefulWidget {
 
 class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  int currentIndex = 2; // Center tab (Home) by default
+  final storage = FlutterSecureStorage();
+  int currentIndex = 1; // Center tab (Home) by default
 
   @override
   void initState() {
@@ -40,6 +43,15 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
     super.dispose();
   }
 
+  Future<void> _logout(BuildContext context) async {
+    await storage.delete(key: 'isLoggedIn');
+    // Navigate to login screen and remove all previous routes
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const AdminLogin()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AdminViewModel>(
@@ -51,8 +63,35 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Admin Dashboard'),
+            title: const Text('Kameti App'),
             actions: [
+              IconButton(
+                tooltip: 'Logout',
+                icon: const Icon(Icons.logout),
+                onPressed: () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Confirm Logout'),
+                      content: const Text('Are you sure you want to logout?'),
+                      actions: [
+                        TextButton(
+                          child: const Text('Cancel'),
+                          onPressed: () => Navigator.pop(context, false),
+                        ),
+                        ElevatedButton(
+                          child: const Text('Logout'),
+                          onPressed: () => Navigator.pop(context, true),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirm == true) {
+                    await _logout(context);
+                  }
+                },
+              ),
               if (currentIndex == 1) // Only on Dashboard tab
                 IconButton(
                   icon: const Icon(Icons.attach_money),
